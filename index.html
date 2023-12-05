@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Quill Text Editor</title>
+   <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+   <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+</head>
+<body>
+    <div id="editor">
+        <p>Hello World!</p>
+        <p>Some initial <strong>bold</strong> text</p>
+        <p><br></p>
+      </div>
+      
+          <div id="search-container">
+              <input id="search-input" class="input" type="text" placeholder="search">
+              <input id="replace-input" class="input" type="text" placeholder="replace">
+              <button id="search">find</button>
+              <button id="replace">replace</button>
+              <button id="replace-all">replace all</button>
+          </div>
+      <hr>
+      <a href="https://github.com/MuhammedAlkhudiry/quill-find-replace-module">Github Page</a>
+   <script>
+      class Searcher {
+  constructor(quill) {
+    this.quill = quill;
+    this.container = document.getElementById("search-container");
+
+    document
+      .getElementById("search")
+      .addEventListener("click", this.search.bind(this));
+    document
+      .getElementById("search-input")
+      .addEventListener("keyup", this.keyPressedHandler.bind(this));
+
+    document
+      .getElementById("replace")
+      .addEventListener("click", this.replace.bind(this));
+    document
+      .getElementById("replace-all")
+      .addEventListener("click", this.replaceAll.bind(this));
+  }
+
+  search() {
+    //  remove any previous search
+    Searcher.removeStyle();
+    Searcher.SearchedString = document.getElementById("search-input").value;
+    if (Searcher.SearchedString) {
+      let totalText = quill.getText();
+      let re = new RegExp(Searcher.SearchedString, "gi");
+      let match = re.test(totalText);
+      if (match) {
+        let indices = (Searcher.occurrencesIndices = totalText.getIndicesOf(
+          Searcher.SearchedString
+        ));
+        let length = (Searcher.SearchedStringLength =
+          Searcher.SearchedString.length);
+
+        indices.forEach(index =>
+          quill.formatText(index, length, "SearchedString", true)
+        );
+      } else {
+        Searcher.occurrencesIndices = null;
+        Searcher.currentIndex = 0;
+      }
+    } else {
+      Searcher.removeStyle();
+    }
+  }
+
+  replace() {
+    if (!Searcher.SearchedString) return;
+
+    // if no occurrences, then search first.
+    if (!Searcher.occurrencesIndices) this.search();
+    if (!Searcher.occurrencesIndices) return;
+
+    let indices = Searcher.occurrencesIndices;
+
+    let oldString = document.getElementById("search-input").value;
+    let newString = document.getElementById("replace-input").value;
+
+    quill.deleteText(indices[Searcher.currentIndex], oldString.length);
+    quill.insertText(indices[Searcher.currentIndex], newString);
+    quill.formatText(
+      indices[Searcher.currentIndex],
+      newString.length,
+      "SearchedString",
+      false
+    );
+    // update the occurrencesIndices.
+    this.search();
+  }
+
+  replaceAll() {
+    if (!Searcher.SearchedString) return;
+    let oldStringLen = document.getElementById("search-input").value.length;
+    let newString = document.getElementById("replace-input").value;
+
+    // if no occurrences, then search first.
+    if (!Searcher.occurrencesIndices) this.search();
+    if (!Searcher.occurrencesIndices) return;
+
+    if (Searcher.occurrencesIndices) {
+      while (Searcher.occurrencesIndices) {
+        quill.deleteText(Searcher.occurrencesIndices[0], oldStringLen);
+        quill.insertText(Searcher.occurrencesIndices[0], newString);
+
+        // update the occurrencesIndices.
+        this.search();
+      }
+    }
+    Searcher.removeStyle();
+  }
+
+  keyPressedHandler(e) {
+    if (e.key === "Enter") {
+      this.search();
+    }
+  }
+
+  static removeStyle() {
+    quill.formatText(0, quill.getText().length, "SearchedString", false);
+  }
+}
+
+occurrencesIndices = [];
+currentIndex = 0;
+SearchedStringLength = 0;
+SearchedString = "";
+
+const Inline = Quill.import("blots/inline");
+
+class SearchedStringBlot extends Inline {
+  static create(value) {
+    let node = super.create(value);
+    node.contentEditable = "false";
+    return node;
+  }
+}
+
+SearchedStringBlot.blotName = "SearchedString";
+SearchedStringBlot.className = "ql-searched-string";
+SearchedStringBlot.tagName = "div";
+
+Quill.register("modules/Searcher", Searcher);
+Quill.register(SearchedStringBlot);
+
+const quill = new Quill("#editor", {
+  // options
+  theme: "snow",
+  modules: {
+    Searcher: true
+  }
+});
+
+// function for utility
+String.prototype.getIndicesOf = function(searchStr) {
+  let searchStrLen = searchStr.length;
+  let startIndex = 0,
+    index,
+    indices = [];
+  while ((index = this.toLowerCase().indexOf(searchStr.toLowerCase(), startIndex)) > -1) {
+    indices.push(index);
+    startIndex = index + searchStrLen;
+  }
+  return indices;
+};
+
+   </script>
+</body>
+</html>
