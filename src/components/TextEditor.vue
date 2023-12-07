@@ -1,7 +1,7 @@
 
 <template>
   <div class="example">
-    <div>
+    <div class="file-buttons">
       File: <input type="text" v-model="savingFileName" placeholder="Enter filename"/>
       <button @click="download()">Save</button>
       <input type="file" ref="doc" @change="readFile()" />
@@ -9,6 +9,9 @@
 
     <quill-editor class="editor" ref="myTextEditor" :value="content" :options="editorOption" @change="onEditorChange"
       @blur="onEditorBlur($event)" @focus="onEditorFocus($event)" @ready="onEditorReady($event)" />
+    <div>
+  <ProjectFooter/>
+</div>
   </div>
 </template>
 
@@ -17,6 +20,7 @@ import dedent from 'dedent'
 import hljs from 'highlight.js'
 import debounce from 'lodash/debounce'
 import { quillEditor } from 'vue-quill-editor'
+import ProjectFooter from "./ProjectFooter.vue"
 
 // highlight.js style
 import 'highlight.js/styles/tomorrow-night-bright.css'
@@ -29,7 +33,8 @@ export default {
   name: 'TextEditor',
   title: 'Theme: snow',
   components: {
-    quillEditor
+    quillEditor,
+    ProjectFooter
   },
   data() {
     return {
@@ -128,9 +133,11 @@ export default {
 .example {
   display: flex;
   flex-direction: column;
+  padding: 10px;
 
   .editor {
     height: 600px;
+    margin-top: 20px ;
   }
 
   .output {
