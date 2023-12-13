@@ -2,45 +2,67 @@
 <template>
   <div class="example">
     <div class="file-buttons">
-      File: <input type="text" v-model="savingFileName" placeholder="Enter filename"/>
+      File:
+      <input
+        type="text"
+        v-model="savingFileName"
+        placeholder="Enter filename"
+      />
       <button @click="download()">Save</button>
       <input type="file" ref="doc" @change="readFile()" />
     </div>
 
-    <quill-editor class="editor" ref="myTextEditor" :value="content" :options="editorOption" @change="onEditorChange"
-      @blur="onEditorBlur($event)" @focus="onEditorFocus($event)" @ready="onEditorReady($event)" />
+    <div class="file-buttons">
+      Find: <input type="text" v-model="findText" placeholder="FIND" /> Replace:
+      <input type="text" v-model="replaceText" placeholder="REPLACE" />
+      <button @click="replaceFirst()">Replace</button>
+      <button @click="replaceAll()">ReplaceAll</button>
+    </div>
+
+    <quill-editor
+      class="editor"
+      ref="myTextEditor"
+      :value="content"
+      :options="editorOption"
+      @change="onEditorChange"
+      @blur="onEditorBlur($event)"
+      @focus="onEditorFocus($event)"
+      @ready="onEditorReady($event)"
+    />
     <div>
-  <ProjectFooter/>
-</div>
+      <!-- <ProjectFooter/> -->
+    </div>
   </div>
 </template>
 
 <script>
-import dedent from 'dedent'
-import hljs from 'highlight.js'
-import debounce from 'lodash/debounce'
-import { quillEditor } from 'vue-quill-editor'
-import ProjectFooter from "./ProjectFooter.vue"
+import dedent from "dedent";
+import hljs from "highlight.js";
+import debounce from "lodash/debounce";
+import { quillEditor } from "vue-quill-editor";
+import ProjectFooter from "./ProjectFooter.vue";
 
 // highlight.js style
-import 'highlight.js/styles/tomorrow-night-bright.css'
+import "highlight.js/styles/tomorrow-night-bright.css";
 
 // import theme style
-import 'quill/dist/quill.core.css'
-import 'quill/dist/quill.snow.css'
+import "quill/dist/quill.core.css";
+import "quill/dist/quill.snow.css";
 
 export default {
-  name: 'TextEditor',
-  title: 'Theme: snow',
+  name: "TextEditor",
+  title: "Theme: snow",
   components: {
     quillEditor,
-    ProjectFooter
+    ProjectFooter,
   },
   data() {
     return {
       file: null,
       content: null,
       savingFileName: "",
+      findText: "",
+      replaceText: "",
       editorOption: {
         modules: {
           toolbar: [
@@ -60,25 +82,28 @@ export default {
             ['link', 'image', 'video']
           ],
           syntax: {
-            highlight: text => hljs.highlightAuto(text).value
-          }
-        }
+            highlight: (text) => hljs.highlightAuto(text).value,
+          },
+        },
       },
       content: dedent`
         `,
-    }
+    };
   },
   methods: {
     onEditorChange: debounce(function (value) {
-      this.content = value.html
+      this.content = value.html;
     }, 466),
 
     download() {
-      var element = document.createElement('a');
-      element.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(this.content));
-      element.setAttribute('download', this.savingFileName);
+      var element = document.createElement("a");
+      element.setAttribute(
+        "href",
+        "data:text/html;charset=utf-8," + encodeURIComponent(this.content)
+      );
+      element.setAttribute("download", this.savingFileName);
 
-      element.style.display = 'none';
+      element.style.display = "none";
       document.body.appendChild(element);
 
       element.click();
@@ -86,11 +111,39 @@ export default {
       document.body.removeChild(element);
     },
 
+    replaceFirst() {
+      const editor = this.$refs.myTextEditor.quill;
+      const delta = editor.getContents();
+      const newDelta = delta.reduce((acc, op) => {
+        if (typeof op.insert === "string") {
+          op.insert = op.insert.replace(this.findText, this.replaceText);
+        }
+        acc.push(op);
+        return acc;
+      }, []);
+      editor.setContents(newDelta);
+    },
+
+    replaceAll() {
+      const editor = this.$refs.myTextEditor.quill;
+      const delta = editor.getContents();
+      const newDelta = delta.reduce((acc, op) => {
+        if (typeof op.insert === "string") {
+          op.insert = op.insert.replaceAll(this.findText, this.replaceText);
+        }
+        acc.push(op);
+        return acc;
+      }, []);
+      editor.setContents(newDelta);
+    },
+
     readFile() {
       this.file = this.$refs.doc.files[0];
       const reader = new FileReader();
       if (this.file.name.includes(".txt") || this.file.name.includes(".html")) {
-        this.savingFileName = this.file.name.replace(".txt", "").replace(".html", "");
+        this.savingFileName = this.file.name
+          .replace(".txt", "")
+          .replace(".html", "");
         reader.onload = (res) => {
           this.content = res.target.result;
         };
@@ -106,27 +159,27 @@ export default {
       }
     },
     onEditorBlur(editor) {
-      console.log('editor blur!', editor)
+      console.log("editor blur!", editor);
     },
     onEditorFocus(editor) {
-      console.log('editor focus!', editor)
+      console.log("editor focus!", editor);
     },
     onEditorReady(editor) {
-      console.log('editor ready!', editor)
-    }
+      console.log("editor ready!", editor);
+    },
   },
   computed: {
     editor() {
-      return this.$refs.myTextEditor.quill
+      return this.$refs.myTextEditor.quill;
     },
     contentCode() {
-      return hljs.highlightAuto(this.content).value
-    }
+      return hljs.highlightAuto(this.content).value;
+    },
   },
   mounted() {
-    console.log('this is Quill instance:', this.editor)
-  }
-}
+    console.log("this is Quill instance:", this.editor);
+  },
+};
 </script>
 
 <style lang="scss" >
@@ -137,7 +190,7 @@ export default {
 
   .editor {
     height: 600px;
-    margin-top: 20px ;
+    margin-top: 20px;
   }
 
   .output {
