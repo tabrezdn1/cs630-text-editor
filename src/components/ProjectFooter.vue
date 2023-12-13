@@ -4,7 +4,7 @@
             <div class="f-item-con">
                 <div class="app-info">
                     <span class='app-name'>
-                        CS 630 (005) Fall 2023 - Group 10
+                    CS 630 (005) Fall 2023 - Group 10
                     </span>
                     <p><strong>TEXT EDITOR</strong></p>
                     <p>A text editor is a type of computer program that edits plain text.
@@ -50,7 +50,7 @@ footer {
 footer .app-name {
     color: white;
     border-left: 4px solid var(--theme-col);
-    padding-left: 1.5rem;
+    padding-left: 1rem;
     font-size: 1.875rem;
 }
 
