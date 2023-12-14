@@ -30,7 +30,7 @@
       @ready="onEditorReady($event)"
     />
     <div>
-      <!-- <ProjectFooter/> -->
+      <ProjectFooter/>
     </div>
   </div>
 </template>
